@@ -12,8 +12,17 @@ const config = require('./config/config');
 // Create Express app
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? [config.CLIENT_URL] // Whitelist the client URL in production
+    : '*', // Allow all origins in development
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Database connection
@@ -28,12 +37,17 @@ app.use('/api/reviews', reviewRoutes);
 
 // Default route
 app.get('/', (req, res) => {
-  res.send('Movie API is running');
+  res.send('CineConnect API is running');
+});
+
+// Server status route for health checks
+app.get('/status', (req, res) => {
+  res.json({ status: 'ok', environment: process.env.NODE_ENV });
 });
 
 // Server
 const PORT = config.PORT;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
   console.log(`Client URL set to: ${config.CLIENT_URL}`);
 }); 
